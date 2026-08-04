@@ -22,9 +22,6 @@ A from-scratch UVM verification environment for a 4-register **AXI4-Lite slave**
 
 The DUT looks simple — 4 registers behind an AXI4-Lite interface — but a proper UVM environment around it still has to answer real verification questions: what happens if reset hits mid-transaction? Does the slave actually respect `WSTRB` at the byte level? Can it accept a second write while the first response is still pending? This testbench is built to answer those questions with assertions and a reference-model scoreboard, not just "it ran without crashing."
 
-## Testbench Architecture
-![UVM Testbench Architecture](uvm_architecture.png)
-
 **Key design choices:**
 - `ARESETN` lives *inside* the interface as a plain variable (not a port), with `assert_reset()` / `deassert_reset()` / `pulse_reset()` tasks — so any test can control reset legally through the virtual interface, without fighting SystemVerilog's net-driving rules.
 - Protocol-stability assertions (`VALID` must not drop before `READY`) live in the interface itself, so every single test gets that check for free — no need to repeat it per testcase.
@@ -80,6 +77,7 @@ Not every "interesting" test is about a bug — some are about documenting real 
 - **No decode error path.** `BRESP`/`RRESP` are hard-coded `OKAY` — there's no `SLVERR`/`DECERR` logic to verify, so response checks in the scoreboard are really checking "did the DUT stay well-behaved," not address decoding.
 
 ## How to Run
+Fastest way to try it: open the **[EDA Playground project](https://www.edaplayground.com/x/UKNe)**, pick a testcase in the Run Options field (`+UVM_TESTNAME=<test_name>`), and hit Run — Questa 2025.2 + UVM 1.2 are already configured there.
 
 ```bash
 vsim -c work.tb_top +UVM_TESTNAME=<test_name> -do "run -all"
