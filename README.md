@@ -11,10 +11,8 @@ A from-scratch UVM verification environment for a 4-register **AXI4-Lite slave**
 ## Table of Contents
 
 - [Why this project](#why-this-project)
-- [Testbench architecture](#testbench-architecture)
 - [File list](#file-list)
 - [Testcase list](#testcase-list-tc01tc17)
-- [Design limitations this testbench catches](#design-limitations-this-testbench-catches)
 - [How to run](#how-to-run)
 - [Notes](#notes)
 
@@ -68,14 +66,6 @@ The DUT looks simple — 4 registers behind an AXI4-Lite interface — but a pro
 | 16 | `test_outstanding_txn_block` | A second write is **not** accepted while the first response is still pending (no outstanding-transaction support) |
 | 17 | `test_random_stress` | 1000 fully random transactions back-to-back, guarded by a 2ms watchdog |
 
-## Design Limitations This Testbench Catches
-
-Not every "interesting" test is about a bug — some are about documenting real constraints of this DUT so nobody is surprised later:
-
-- **No outstanding transactions.** `aw_en` blocks a second write address until the first write's response has been accepted (`test_outstanding_txn_block`). This DUT is strictly one-transaction-at-a-time.
-- **`AWPROT`/`ARPROT` are decorative.** The DUT never reads them for access control — they can be any value without changing behavior.
-- **No decode error path.** `BRESP`/`RRESP` are hard-coded `OKAY` — there's no `SLVERR`/`DECERR` logic to verify, so response checks in the scoreboard are really checking "did the DUT stay well-behaved," not address decoding.
-
 ## How to Run
 Fastest way to try it: open the **[EDA Playground project](https://www.edaplayground.com/x/UKNe)**, pick a testcase in the Run Options field (`+UVM_TESTNAME=<test_name>`), and hit Run — Questa 2025.2 + UVM 1.2 are already configured there.
 
@@ -109,5 +99,4 @@ vsim -c work.tb_top +UVM_TESTNAME=<test_name> +UVM_VERBOSITY=UVM_HIGH -do "run -
 ## Notes
 
 - The original DUT (`myip_v1_0_S00_AXI`) only supports one transaction at a time (no outstanding transaction support) — `test_outstanding_txn_block` verifies this design limitation directly.
-- Reset (`ARESETN`) does not live in `tb_top`; it lives inside `axi4lite_if` and is controlled via `vif.assert_reset()` / `vif.deassert_reset()` / `vif.pulse_reset()` — each test calls `pulse_reset()` at the start of its own `run_phase`, so reset happens sequentially as part of the test rather than racing against `run_test()`.
-- This project was built and debugged step by step (including chasing down real compile/runtime errors along the way — `vlog-13276`, `vlog-13167`, `vopt-2110`, `SEQREQZMB`) rather than assembled from a finished template, so the structure favors clarity over cleverness.
+
