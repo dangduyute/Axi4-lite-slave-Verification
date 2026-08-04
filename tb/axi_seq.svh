@@ -148,11 +148,24 @@ class tc14_random_write_read_seq extends axi4lite_base_seq;
     endtask
 endclass
 
-// TC16: random stress test
-class tc16_random_stress_seq extends axi4lite_base_seq;
-    `uvm_object_utils(tc16_random_stress_seq)
-    int num_transactions = 1000;
-    function new(string name = "tc16_random_stress_seq"); super.new(name); endfunction
+// TC15: overwrite same register (write twice, read back)
+class tc15_write_overwrite_seq extends axi4lite_base_seq;
+    `uvm_object_utils(tc15_write_overwrite_seq)
+    function new(string name = "tc15_write_overwrite_seq"); super.new(name); endfunction
+
+    virtual task body();
+        bit [31:0] rd_data;
+        do_write(4'h0, 32'hAAAA_AAAA);
+        do_write(4'h0, 32'h5555_5555);
+        do_read(4'h0, rd_data);
+    endtask
+endclass
+
+// TC17: random stress test
+class tc17_random_stress_seq extends axi4lite_base_seq;
+    `uvm_object_utils(tc17_random_stress_seq)
+    rand int unsigned num_transactions = 1000;
+    function new(string name = "tc17_random_stress_seq"); super.new(name); endfunction
 
     virtual task body();
         axi4lite_seq_item item;
