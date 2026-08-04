@@ -1,4 +1,8 @@
+<<<<<<< HEAD
 # AXI4-Lite Slave UVM Testbench
+=======
+# AXI4-Lite Slave Verification
+>>>>>>> 88d947bbb263cfc32b4a95d62d2d3636f622ee24
 
 [![UVM](https://img.shields.io/badge/UVM-1.2-blue)]()
 [![SystemVerilog](https://img.shields.io/badge/SystemVerilog-IEEE1800-orange)]()
@@ -25,7 +29,22 @@ The DUT looks simple — 4 registers behind an AXI4-Lite interface — but a pro
 
 ## Testbench Architecture
 
+<<<<<<< HEAD
 ![UVM Testbench Architecture](uvm_architecture.png)
+=======
+```
+tb_top (module)
+ └─ axi4lite_if            interface, holds ARESETN internally + reset tasks
+ └─ myip_v1_0_S00_AXI       DUT
+ └─ uvm_test (axi4lite_base_test and derived tests)
+     └─ axi4lite_env
+         ├─ axi4lite_agent
+         │   ├─ axi4lite_sequencer
+         │   ├─ axi4lite_driver     drives signals into the DUT
+         │   └─ axi4lite_monitor    watches the bus, captures completed transactions
+         └─ axi4lite_scoreboard     reference model of the 4 registers, checks results
+```
+>>>>>>> 88d947bbb263cfc32b4a95d62d2d3636f622ee24
 
 **Key design choices:**
 - `ARESETN` lives *inside* the interface as a plain variable (not a port), with `assert_reset()` / `deassert_reset()` / `pulse_reset()` tasks — so any test can control reset legally through the virtual interface, without fighting SystemVerilog's net-driving rules.
