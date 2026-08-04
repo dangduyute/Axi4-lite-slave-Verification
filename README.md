@@ -1,8 +1,5 @@
-<<<<<<< HEAD
-# AXI4-Lite Slave UVM Testbench
-=======
+
 # AXI4-Lite Slave Verification
->>>>>>> 88d947bbb263cfc32b4a95d62d2d3636f622ee24
 
 [![UVM](https://img.shields.io/badge/UVM-1.2-blue)]()
 [![SystemVerilog](https://img.shields.io/badge/SystemVerilog-IEEE1800-orange)]()
@@ -19,8 +16,6 @@ A from-scratch UVM verification environment for a 4-register **AXI4-Lite slave**
 - [Testcase list](#testcase-list-tc01tc17)
 - [Design limitations this testbench catches](#design-limitations-this-testbench-catches)
 - [How to run](#how-to-run)
-- [Expected result](#expected-result)
-- [Compile order](#compile-order)
 - [Notes](#notes)
 
 ## Why This Project
@@ -28,23 +23,7 @@ A from-scratch UVM verification environment for a 4-register **AXI4-Lite slave**
 The DUT looks simple — 4 registers behind an AXI4-Lite interface — but a proper UVM environment around it still has to answer real verification questions: what happens if reset hits mid-transaction? Does the slave actually respect `WSTRB` at the byte level? Can it accept a second write while the first response is still pending? This testbench is built to answer those questions with assertions and a reference-model scoreboard, not just "it ran without crashing."
 
 ## Testbench Architecture
-
-<<<<<<< HEAD
 ![UVM Testbench Architecture](uvm_architecture.png)
-=======
-```
-tb_top (module)
- └─ axi4lite_if            interface, holds ARESETN internally + reset tasks
- └─ myip_v1_0_S00_AXI       DUT
- └─ uvm_test (axi4lite_base_test and derived tests)
-     └─ axi4lite_env
-         ├─ axi4lite_agent
-         │   ├─ axi4lite_sequencer
-         │   ├─ axi4lite_driver     drives signals into the DUT
-         │   └─ axi4lite_monitor    watches the bus, captures completed transactions
-         └─ axi4lite_scoreboard     reference model of the 4 registers, checks results
-```
->>>>>>> 88d947bbb263cfc32b4a95d62d2d3636f622ee24
 
 **Key design choices:**
 - `ARESETN` lives *inside* the interface as a plain variable (not a port), with `assert_reset()` / `deassert_reset()` / `pulse_reset()` tasks — so any test can control reset legally through the virtual interface, without fighting SystemVerilog's net-driving rules.
@@ -55,20 +34,20 @@ tb_top (module)
 
 | File | Role |
 |---|---|
-| `axi4lite_if_basic.sv` | Interface connecting to the DUT — no modport/clocking block, includes assertions checking that `VALID` doesn't drop before `READY` |
-| `axi4lite_seq_item.sv` | Transaction (seq_item): address, data, `WSTRB`, handshake delays |
-| `axi4lite_base_seq.sv` | Base sequence, provides `do_write()` / `do_read()` helpers reused by other sequences |
-| `axi4lite_testcase_seqs.sv` | One sequence per testcase |
-| `axi4lite_sequencer.sv` | Sequencer (typedef of `uvm_sequencer`) |
-| `axi4lite_driver.sv` | Driver — pulls items from the sequencer, drives them into the DUT via the interface |
-| `axi4lite_monitor.sv` | Monitor — captures completed transactions, publishes them on an analysis port |
-| `axi4lite_agent.sv` | Bundles sequencer + driver + monitor |
-| `axi4lite_scoreboard.sv` | Reference model of the 4 registers, checks `RDATA`/`BRESP`/`RRESP` |
-| `axi4lite_env.sv` | Bundles agent + scoreboard, sets a `drain_time` for waveform inspection |
-| `axi4lite_base_test.sv` | Base test — builds the env, fetches the virtual interface, provides a hang-watchdog |
-| `axi4lite_tests.sv` | 17 test classes, one per testcase |
-| `axi4lite_pkg.sv` | Bundles all classes in the correct include order |
-| `tb_top.sv` | Top module — generates the clock, wires the DUT to the interface, calls `run_test()` |
+| `interface.svh` | Interface connecting to the DUT — includes assertions checking that `VALID` doesn't drop before `READY` |
+| `axi_seq_item.svh` | Transaction (seq_item): address, data, `WSTRB`, handshake delays |
+| `axi_seq_base.svh` | Base sequence, provides `do_write()` / `do_read()` helpers reused by other sequences |
+| `axi_seq.svh` | One sequence per testcase |
+| `axi_sequencer.svh` | Sequencer (typedef of `uvm_sequencer`) |
+| `axi_driver.svh` | Driver — pulls items from the sequencer, drives them into the DUT via the interface |
+| `axi_monitor.svh` | Monitor — captures completed transactions, publishes them on an analysis port |
+| `axi_agent.svh` | Bundles sequencer + driver + monitor |
+| `axi_scoreboard.svh` | Reference model of the 4 registers, checks `RDATA`/`BRESP`/`RRESP` |
+| `axi_env.svh` | Bundles agent + scoreboard, sets a `drain_time` for waveform inspection |
+| `axi_base_test.svh` | Base test — builds the env, fetches the virtual interface, provides a hang-watchdog |
+| `axi_tests.svh` | 17 test classes, one per testcase |
+| `package.svh` | Bundles all classes in the correct include order |
+| `testbench.sv` | Top module — generates the clock, wires the DUT to the interface, calls `run_test()` |
 
 ## Testcase List (TC01–TC17)
 
@@ -126,24 +105,6 @@ done
 Want to see what the driver and monitor are actually doing cycle by cycle? Bump the verbosity (only scoreboard summaries are shown by default):
 ```bash
 vsim -c work.tb_top +UVM_TESTNAME=<test_name> +UVM_VERBOSITY=UVM_HIGH -do "run -all"
-```
-
-## Expected Result
-
-Every test ends with a scoreboard summary:
-```
-UVM_INFO ... [SCOREBOARD] SUMMARY: writes=X reads=Y matches=Z mismatches=0 bresp_err=0 rresp_err=0
-UVM_INFO ... [SCOREBOARD] *** TEST PASSED (no mismatches/response errors) ***
-```
-
-A non-zero `mismatches`, `bresp_err`, or `rresp_err` — or a `UVM_ERROR` from one of the protocol assertions — means the run should be treated as a failure, not just "check the log title."
-
-## Compile Order
-
-```
-axi4lite_if_basic.sv     (interface, must be compiled before the package)
-axi4lite_pkg.sv          (bundles all classes in include order)
-tb_top.sv
 ```
 
 ## Notes
