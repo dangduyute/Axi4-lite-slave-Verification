@@ -1,0 +1,1 @@
+typedef uvm_sequencer #(axi4lite_seq_item) axi4lite_sequencer;
