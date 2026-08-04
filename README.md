@@ -79,6 +79,7 @@ Not every "interesting" test is about a bug — some are about documenting real 
 ## How to Run
 Fastest way to try it: open the **[EDA Playground project](https://www.edaplayground.com/x/UKNe)**, pick a testcase in the Run Options field (`+UVM_TESTNAME=<test_name>`), and hit Run — Questa 2025.2 + UVM 1.2 are already configured there.
 
+Running locally instead:
 ```bash
 vsim -c work.tb_top +UVM_TESTNAME=<test_name> -do "run -all"
 ```
